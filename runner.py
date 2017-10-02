@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import os
 import sys
+import time
 import subprocess
 
 global _base_dir
@@ -30,6 +31,7 @@ def auto_run():
     scan_requests = os.listdir(_listen_dir)
     if scan_requests:
         for scan in scan_requests:
+            print(scan)
             tmp_dir = _logging_folder + scan
             os.makedirs(tmp_dir)
             sys.path.append(tmp_dir)
@@ -40,4 +42,4 @@ def auto_run():
 if __name__ == '__main__':
     while True:
         auto_run()
-        sleep(30)
+        time.sleep(30)
