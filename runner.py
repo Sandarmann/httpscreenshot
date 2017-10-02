@@ -20,6 +20,7 @@ for dir in [_base_dir,_logging_folder,_listen_dir]:
 
 
 def run_screenshots(scan_url_list, scan_results_dir):
+    sys.path.append(scan_results_dir)
     cmd = "/usr/bin/python {} -l {} -p -t 30 -w 50 -a -vH -r 1".format(_httpscreenshot_file, scan_url_list)
     exit_code = subprocess.call(cmd, shell=True)
     sys.path.append(_logging_folder)
