@@ -18,14 +18,12 @@ for dir in [_base_dir,_logging_folder,_listen_dir]:
         os.makedirs(dir)
 
 
-
 def run_screenshots(scan_url_list, scan_results_dir):
-    sys.path.append(scan_results_dir)
-    cmd = "/usr/bin/python {} -l {} -p -t 30 -w 50 -a -vH -r 1".format(_httpscreenshot_file, scan_url_list)
+    cmd = "cd {} && /usr/bin/python {} -l {} -p -t 30 -w 50 -a -vH -r 1".format(scan_results_dir, _httpscreenshot_file, scan_url_list)
     exit_code = subprocess.call(cmd, shell=True)
-    sys.path.append(_logging_folder)
-    group_cmd = '/usr/bin/python {} -d {}'.format(_httpscreenshot_cluster_file, scan_results_dir)
+    group_cmd = 'cd {} && /usr/bin/python {} -d {}/'.format(scan_results_dir, _httpscreenshot_cluster_file, scan_results_dir)
     exit_code = subprocess.call(group_cmd, shell=True)
+    return
 
 
 def auto_run():
@@ -39,6 +37,8 @@ def auto_run():
             scan_url_list = _listen_dir + scan
             run_screenshots(scan_url_list, tmp_dir)
             os.remove(scan_url_list)
+    return
+
 
 if __name__ == '__main__':
     while True:
