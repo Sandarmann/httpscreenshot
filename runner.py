@@ -38,7 +38,7 @@ def auto_run():
             scan_url_list = _listen_dir + scan
             run_screenshots(scan_url_list, tmp_dir)
             os.remove(scan_url_list)
-            with open(_listen_dir + scan + '_log', 'w') as f:
+            with open(_logging_folder + scan + '_log', 'w') as f:
                 f.write('finished')
     return
 
