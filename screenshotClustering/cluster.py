@@ -13,6 +13,8 @@ try:
 except:
 	from urllib import quote,unquote
 
+import json
+
 def addAttrToBag(attrName,url,link,wordBags,soup):
 	for tag in soup.findAll('',{attrName:True}):
 		if(isinstance(tag[attrName],str) or isinstance(tag[attrName],unicode)):
@@ -482,7 +484,8 @@ if __name__ == '__main__':
 
 	else:
 		clusterDict = doCluster(htmlList)
-		print(clusterDict)
+		with open('cluster.json', 'w') as f:
+			json.dump(clusterDict, f, sort_keys=True, indent=4, separators=(',', ': '))
 		htmlList = renderClusterHtml(clusterDict,width,height,scopeFile=args.scope)
 		html = htmlList[0]+htmlList[1]+htmlList[2]
 
