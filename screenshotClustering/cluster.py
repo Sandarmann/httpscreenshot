@@ -13,6 +13,8 @@ try:
 except:
 	from urllib import quote,unquote
 
+import json
+
 def addAttrToBag(attrName,url,link,wordBags,soup):
 	for tag in soup.findAll('',{attrName:True}):
 		if(isinstance(tag[attrName],str) or isinstance(tag[attrName],unicode)):
@@ -20,7 +22,7 @@ def addAttrToBag(attrName,url,link,wordBags,soup):
 		elif(isinstance(tag[attrName],list)):
 			tagStr = tag[attrName][0].encode('utf-8').strip()
 		else:
-			print '[-] Strange tag type detected - '+str(type(tag[attrName]))
+			# print '[-] Strange tag type detected - '+str(type(tag[attrName]))
 			tagStr = 'XXXXXXXXX'
 
 		if(tagStr != ''):
@@ -363,10 +365,11 @@ def doCluster(htmlList):
 
 	clusterDict = {}
 	for site,data in clusterData.iteritems():
-		if data[1] in clusterDict:
-			clusterDict[data[1]].append(site)
+		ptitle = getPageTitle(site)
+		if ptitle in clusterDict:
+			clusterDict[ptitle].append(site)
 		else:
-			clusterDict[data[1]]=[site]
+			clusterDict[ptitle]=[site]
 	return clusterDict
 
 
@@ -481,11 +484,13 @@ if __name__ == '__main__':
 
 	else:
 		clusterDict = doCluster(htmlList)
+		with open('cluster.json', 'w') as f:
+			json.dump(clusterDict, f, sort_keys=True, indent=4, separators=(',', ': '))
 		htmlList = renderClusterHtml(clusterDict,width,height,scopeFile=args.scope)
 		html = htmlList[0]+htmlList[1]+htmlList[2]
 
-	f = open(args.output,'w')
-	f.write(html)
-	printJS()
-	printCSS()
+	#f = open(args.output,'w')
+	#f.write(html)
+	#printJS()
+	#printCSS()
 	
