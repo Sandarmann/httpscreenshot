@@ -30,13 +30,16 @@ def auto_run():
     scan_requests = os.listdir(_listen_dir)
     if scan_requests:
         for scan in scan_requests:
-            print(scan)
+            with open(_listen_dir + scan + '_log', 'w') as f:
+                f.write('starting')
             tmp_dir = _logging_folder + scan
             os.makedirs(tmp_dir)
             sys.path.append(tmp_dir)
             scan_url_list = _listen_dir + scan
             run_screenshots(scan_url_list, tmp_dir)
             os.remove(scan_url_list)
+            with open(_listen_dir + scan + '_log', 'w') as f:
+                f.write('finished')
     return
 
 
