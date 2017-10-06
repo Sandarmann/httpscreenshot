@@ -30,7 +30,7 @@ def auto_run():
     scan_requests = os.listdir(_listen_dir)
     if scan_requests:
         for scan in scan_requests:
-            with open(_listen_dir + scan + '_log', 'w') as f:
+            with open(_logging_folder + scan + '_log', 'w') as f:
                 f.write('starting')
             tmp_dir = _logging_folder + scan
             os.makedirs(tmp_dir)
