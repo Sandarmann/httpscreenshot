@@ -43,3 +43,9 @@ mv phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs
 wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz
 tar xzvf geckodriver-v0.11.1-linux64.tar.gz
 mv geckodriver /usr/bin/geckodriver
+
+mkdir -p /root/httpscreenshot/logs/inbound/
+cp -f /root/httpscreenshot/httpscreenshot.service /lib/systemd/system/
+/bin/systemctl daemon-reload
+/bin/systemctl enable httpscreenshot.service
+/bin/systemctl restart httpscreenshot.service
