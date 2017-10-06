@@ -1,0 +1,13 @@
+[Unit]
+Description=httpscreenshot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/httpscreenshot
+ExecStart=/usr/bin/python /root/httpscreenshot/runner.py 
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
