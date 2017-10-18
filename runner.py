@@ -33,7 +33,8 @@ def auto_run():
             with open(_logging_folder + scan + '_log', 'w') as f:
                 f.write('starting')
             tmp_dir = _logging_folder + scan
-            os.makedirs(tmp_dir)
+            if not os.path.exists(tmp_dir):
+                os.makedirs(tmp_dir)
             sys.path.append(tmp_dir)
             scan_url_list = _listen_dir + scan
             run_screenshots(scan_url_list, tmp_dir)
