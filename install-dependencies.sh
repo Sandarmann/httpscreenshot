@@ -19,7 +19,7 @@ apt-get install -y swig swig3.0 libssl-dev python-dev libjpeg-dev xvfb
 
 # Install pip and install pytnon requirements through it
 apt-get install -y python-pip
-pip install -r requirements.txt
+pip install -r /root/httpscreenshot/requirements.txt
 
 # This binary is distributed with the code base, version is
 # more recent then the one in the ubuntu repo (1.9.1 vs 1.9.0)
