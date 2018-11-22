@@ -97,6 +97,8 @@ def detectFileType(inFile):
 			return 'gnmap'
 	elif ((firstLine.find('xml version') != -1) and secondLine.find('DOCTYPE nmaprun') != -1):
 		return 'xml'
+        elif (firstLine.find("http") != -1) or (firstLine.find("https") != -1):
+            return 'hostnames'
 	else:
 		return None
 
@@ -214,7 +216,7 @@ def writeImage(text, filename, fontsize=40, width=1024, height=200):
 def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts, tryGUIOnFail, smartFetch,proxy):
 	if(debug):
 		print '[*] Starting worker'
-	
+
 	browser = None
 	display = None
 	try:
@@ -236,7 +238,7 @@ def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts,
 	while True:
 		#Try to get a URL from the Queue
 		if urlQueue.qsize() > 0:
-			try:			
+			try:
 				curUrl = urlQueue.get(timeout=tout)
 			except Queue.Empty:
 				continue
@@ -274,7 +276,7 @@ def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts,
 					resp_hash = hashlib.md5(resp.text).hexdigest()
 				else:
 					resp_hash = None
-				
+
 				if smartFetch and resp_hash is not None and resp_hash in hash_basket:
 					#We have this exact same page already, copy it instead of grabbing it again
 					print "[+] Pre-fetch matches previously imaged service, no need to do it again!"
@@ -284,7 +286,7 @@ def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts,
 					if smartFetch:
 						hash_basket[resp_hash] = screenshotName
 
-				
+
 				#browser.set_window_size(1024, 768)
 				browser.set_page_load_timeout((tout))
 				old_url = browser.current_url
@@ -319,7 +321,7 @@ def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts,
 								continue
 						except:
 							browser2.quit()
-							print "[-] Didn't work with SSLv3 either - exception..."+curUrl[0]					
+							print "[-] Didn't work with SSLv3 either - exception..."+curUrl[0]
 
 					if(tryGUIOnFail and headless):
 						display = Display(visible=0, size=(1024, 768))
@@ -429,7 +431,7 @@ def doGet(*args, **kwargs):
 					urlQueue.put(['https://'+name+':'+str(port),False,url[2]])
 					print '[+] Added host '+name
 		return resp
-	else:	
+	else:
 		return resp
 
 
@@ -448,7 +450,7 @@ def autodetectRequest(url, timeout, vhosts=False, urlQueue=None, subs=None, extr
 
 	try:
 		#cert = ssl.get_server_certificate((host,port))
-		
+
 		cert = timeoutFn(ssl.get_server_certificate,kwargs={'addr':(host,port),'ssl_version':ssl.PROTOCOL_SSLv23},timeout_duration=3)
 
 		if(cert is not None):
@@ -509,7 +511,7 @@ if __name__ == '__main__':
 		parser.print_help()
 		sys.exit(0)
 
-	
+
 	#read in the URI list if specificed
 	uris = ['']
 	if(args.uri_list != None):
@@ -542,9 +544,15 @@ if __name__ == '__main__':
 						else:
 							url = ['http://'+host+':'+port[0]+uri.strip(),args.vhosts,args.retries]
 						urls.append(url)
+
+                elif(detectFileType(inFile) == "hostnames"):
+                    with open(inFile, "r") as f:
+                        for line in f:
+                            hosts += [line, args.vhosts, args.retries]
+
 		else:
 			print 'Invalid input file - must be Nmap GNMAP or Nmap XML'
-	
+
 	elif (args.list is not None):
 		f = open(args.list,'r')
 		lst = f.readlines()
@@ -554,7 +562,7 @@ if __name__ == '__main__':
 	else:
 		print "No input specified"
 		sys.exit(0)
-	
+
 
 	#shuffle the url list
 	shuffle(urls)
@@ -575,10 +583,10 @@ if __name__ == '__main__':
 		p = multiprocessing.Process(target=worker, args=(urlQueue, args.timeout, args.verbose, args.headless, args.autodetect, args.vhosts, subs, hostsDict, args.trygui, args.smartfetch,args.proxy))
 		workers.append(p)
 		p.start()
-	
+
 	for url in urls:
 		urlQueue.put(url)
 
 	for p in workers:
 	        p.join()
-			
+
