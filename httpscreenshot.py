@@ -8,6 +8,8 @@ then pip install selenium (or pip install --upgrade selenium)
 '''
 
 from selenium import webdriver
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 from urlparse import urlparse
 from random   import shuffle
 from PIL      import Image
@@ -168,31 +170,43 @@ def parseGnmap(inFile, autodetect):
 	return targets
 
 
-def setupBrowserProfile(headless,proxy):
+def setupBrowserProfile(headless,proxy,browser_choice):
 	browser = None
 	if(proxy is not None):
 		service_args=['--ignore-ssl-errors=true','--ssl-protocol=any','--proxy='+proxy,'--proxy-type=socks5']
 	else:
 		service_args=['--ignore-ssl-errors=true','--ssl-protocol=any']
 
+
 	while(browser is None):
 		try:
-			if(not headless):
-				capabilities = DesiredCapabilities.FIREFOX
-				capabilities['acceptSslCerts'] = True
-				fp = webdriver.FirefoxProfile()
-				fp.set_preference("webdriver.accept.untrusted.certs",True)
-				fp.set_preference("security.enable_java", False)
-				fp.set_preference("webdriver.load.strategy", "fast");
-				if(proxy is not None):
-					proxyItems = proxy.split(":")
-					fp.set_preference("network.proxy.socks",proxyItems[0])
-					fp.set_preference("network.proxy.socks_port",int(proxyItems[1]))
-					fp.set_preference("network.proxy.type",1)
-				browser = webdriver.Firefox(firefox_profile=fp,capabilities=capabilities)
-			else:
-				browser = webdriver.PhantomJS(service_args=service_args, executable_path="phantomjs")
-				browser.set_window_size(1024, 768)
+                    if "chrome" in browser_choice:
+                        options = ChromeOptions()
+                        if headless:
+                            options.add_argument('--headless')
+                            options.add_argument('--no-sandbox')
+                            options.add_argument('--disable-dev-shm-usage')
+
+                        browser = webdriver.Chrome(chrome_options=options)
+
+                    elif "firefox" in browser_choice:
+                        capabilities = DesiredCapabilities.FIREFOX
+                        capabilities['acceptSslCerts'] = True
+                        fp = webdriver.FirefoxProfile()
+                        fp.set_preference("webdriver.accept.untrusted.certs",True)
+                        fp.set_preference("security.enable_java", False)
+                        fp.set_preference("webdriver.load.strategy", "fast");
+                        if(proxy is not None):
+                                proxyItems = proxy.split(":")
+                                fp.set_preference("network.proxy.socks",proxyItems[0])
+                                fp.set_preference("network.proxy.socks_port",int(proxyItems[1]))
+                                fp.set_preference("network.proxy.type",1)
+
+                        options = FirefoxOptions()
+                        if headless:
+                            options.add_argument('-headless')
+
+                        browser = webdriver.Firefox(firefox_profile=fp,capabilities=capabilities,options=options)
 
 		except Exception as e:
 			print e
@@ -213,7 +227,7 @@ def writeImage(text, filename, fontsize=40, width=1024, height=200):
 	image.save(filename)
 
 
-def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts, tryGUIOnFail, smartFetch,proxy):
+def worker(urlQueue, tout, debug, headless, browser_choice, doProfile, vhosts, subs, extraHosts, tryGUIOnFail, smartFetch,proxy):
 	if(debug):
 		print '[*] Starting worker'
 
@@ -224,7 +238,7 @@ def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts,
 			display = Display(visible=0, size=(800, 600))
 			display.start()
 
-		browser = setupBrowserProfile(headless,proxy)
+		browser = setupBrowserProfile(headless,proxy, browser_choice)
 
 	except:
 		print "[-] Oh no! Couldn't create the browser, Selenium blew up"
@@ -327,7 +341,7 @@ def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts,
 						display = Display(visible=0, size=(1024, 768))
 						display.start()
 						print "[+] Attempting to fetch with FireFox: "+curUrl[0]
-						browser2 = setupBrowserProfile(False,proxy)
+						browser2 = setupBrowserProfile(False,proxy,browser_choice)
 						old_url = browser2.current_url
 						try:
 							browser2.get(curUrl[0].strip())
@@ -370,7 +384,7 @@ def worker(urlQueue, tout, debug, headless, doProfile, vhosts, subs, extraHosts,
 				lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
 				print ''.join('!! ' + line for line in lines)
 			browser.quit()
-			browser = setupBrowserProfile(headless,proxy)
+			browser = setupBrowserProfile(headless,proxy,browser_choice)
 			continue
 	browser.quit()
 	display.stop()
@@ -492,6 +506,7 @@ if __name__ == '__main__':
 	parser.add_argument("-l","--list",help='List of input URLs')
 	parser.add_argument("-i","--input",help='nmap gnmap/xml output file')
 	parser.add_argument("-p","--headless",action='store_true',default=False,help='Run in headless mode (using phantomjs)')
+	parser.add_argument("-b","--browser",type=str,default="firefox",choices=["chrome", "firefox"],help='Browser to run selenium')
 	parser.add_argument("-w","--workers",default=1,type=int,help='number of threads')
 	parser.add_argument("-t","--timeout",type=int,default=10,help='time to wait for pageload before killing the browser')
 	parser.add_argument("-v","--verbose",action='store_true',default=False,help='turn on verbose debugging')
@@ -546,10 +561,10 @@ if __name__ == '__main__':
 						urls.append(url)
 
                 elif(detectFileType(inFile) == "hostnames"):
-                    with open(inFile, "r") as f:
-                        for line in f:
-                            hosts += [line, args.vhosts, args.retries]
-
+                    urls = []
+                    for line in inFile:
+                        url = [line.strip(), args.vhosts, args.retries]
+                        urls.append(url)
 		else:
 			print 'Invalid input file - must be Nmap GNMAP or Nmap XML'
 
@@ -580,7 +595,7 @@ if __name__ == '__main__':
 	hash_basket   = {}
 
 	for i in range(args.workers):
-		p = multiprocessing.Process(target=worker, args=(urlQueue, args.timeout, args.verbose, args.headless, args.autodetect, args.vhosts, subs, hostsDict, args.trygui, args.smartfetch,args.proxy))
+		p = multiprocessing.Process(target=worker, args=(urlQueue, args.timeout, args.verbose, args.headless, args.browser, args.autodetect, args.vhosts, subs, hostsDict, args.trygui, args.smartfetch,args.proxy))
 		workers.append(p)
 		p.start()
 

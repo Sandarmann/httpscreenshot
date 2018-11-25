@@ -1,3 +1,4 @@
+#!/bin/bash
 # Installation Script - tested on an ubuntu/trusty64 vagrant box
 
 # Show all commands being run
@@ -5,6 +6,7 @@
 
 # Error out if one fails
 set -e
+BASE_DIR=$(dirname ${BASH_SOURCE[0]})
 
 apt-get install -y swig swig3.0 libssl-dev python-dev libjpeg-dev xvfb
 
@@ -19,7 +21,7 @@ apt-get install -y swig swig3.0 libssl-dev python-dev libjpeg-dev xvfb
 
 # Install pip and install pytnon requirements through it
 apt-get install -y python-pip
-pip install -r /root/httpscreenshot/requirements.txt
+pip install -r $BASE_DIR/requirements.txt
 
 # This binary is distributed with the code base, version is
 # more recent then the one in the ubuntu repo (1.9.1 vs 1.9.0)
@@ -40,12 +42,23 @@ fi
 tar xvf phantomjs-2.1.1-linux-x86_64.tar.bz2
 mv phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/bin/phantomjs
 
-wget https://github.com/mozilla/geckodriver/releases/download/v0.11.1/geckodriver-v0.11.1-linux64.tar.gz
-tar xzvf geckodriver-v0.11.1-linux64.tar.gz
+wget https://github.com/mozilla/geckodriver/releases/download/v0.23.0/geckodriver-v0.23.0-linux64.tar.gz
+tar xzvf geckodriver-v0.23.0-linux64.tar.gz
 mv geckodriver /usr/bin/geckodriver
 
-mkdir -p /root/httpscreenshot/logs/inbound/
-cp -f /root/httpscreenshot/httpscreenshot.service /lib/systemd/system/
-/bin/systemctl daemon-reload
-/bin/systemctl enable httpscreenshot.service
-/bin/systemctl restart httpscreenshot.service
+mkdir -p $BASE_DIR/logs/inbound/
+cp -f $BASE_DIR/httpscreenshot.service /lib/systemd/system/
+
+while getopts ":enable_service" opt; do
+    case $opt in
+        a)
+            echo "enabling service was triggered!" >&2
+            systemctl daemon-reload
+            systemctl enable httpscreenshot.service
+            systemctl restart httpscreenshot.service
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            ;;
+    esac
+done
