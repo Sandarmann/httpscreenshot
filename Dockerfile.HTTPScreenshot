@@ -14,7 +14,7 @@ RUN cd httpscreenshot \
     && ./install-dependencies.sh \
     && chmod +x httpscreenshot.py \
     && ln -s /httpscreenshot/httpscreenshot.py /usr/bin/httpscreenshot \
-    && wget https://chromedriver.storage.googleapis.com/2.44/chromedriver_linux64.zip
+    && wget https://chromedriver.storage.googleapis.com/2.44/chromedriver_linux64.zip \
     && unzip -o chromedriver_linux64.zip \
     && ln -s /httpscreenshot/chromedriver /usr/bin/chromedriver
 

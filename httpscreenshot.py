@@ -172,11 +172,6 @@ def parseGnmap(inFile, autodetect):
 
 def setupBrowserProfile(headless,proxy,browser_choice):
 	browser = None
-	if(proxy is not None):
-		service_args=['--ignore-ssl-errors=true','--ssl-protocol=any','--proxy='+proxy,'--proxy-type=socks5']
-	else:
-		service_args=['--ignore-ssl-errors=true','--ssl-protocol=any']
-
 
 	while(browser is None):
 		try:
@@ -203,6 +198,7 @@ def setupBrowserProfile(headless,proxy,browser_choice):
                                 fp.set_preference("network.proxy.type",1)
 
                         options = FirefoxOptions()
+
                         if headless:
                             options.add_argument('-headless')
 
@@ -276,6 +272,7 @@ def worker(urlQueue, tout, debug, headless, browser_choice, doProfile, vhosts, s
 				[resp,curUrl] = autodetectRequest(curUrl, timeout=tout, vhosts=vhosts, urlQueue=urlQueue, subs=subs, extraHosts=extraHosts,proxy=proxy)
 			else:
 				resp = doGet(curUrl, verify=False, timeout=tout, vhosts=vhosts, urlQueue=urlQueue, subs=subs, extraHosts=extraHosts,proxy=proxy)
+                                print("resp", resp)
 			if(resp is not None and resp.status_code == 401):
 				print curUrl[0]+" Requires HTTP Basic Auth"
 				f = open(screenshotName+".html",'w')
@@ -305,38 +302,10 @@ def worker(urlQueue, tout, debug, headless, browser_choice, doProfile, vhosts, s
 				browser.set_page_load_timeout((tout))
 				old_url = browser.current_url
 				browser.get(curUrl[0].strip())
+                                # THIS MIGHT GET OMMITTED
 				if(browser.current_url == old_url):
 					print "[-] Error fetching in browser but successfully fetched with Requests: "+curUrl[0]
-					if(headless):
-						browser2 = None
-						if(debug):
-							print "[+] Trying with sslv3 instead of TLS - known phantomjs bug: "+curUrl[0]
-						if(proxy is not None):
-							browser2 = webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true','--proxy='+proxy,'--proxy-type=socks5'], executable_path="phantomjs")
-						else:
-							browser2 = webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true'], executable_path="phantomjs")
-							#print "Launched browser2: "+str(browser2.service.process.pid)
-
-						old_url = browser2.current_url
-						try:
-							browser2.get(curUrl[0].strip())
-							if(browser2.current_url == old_url):
-								if(debug):
-									print "[-] Didn't work with SSLv3 either..."+curUrl[0]
-								browser2.quit()
-							else:
-								print '[+] Saving: '+screenshotName
-								html_source = browser2.page_source
-								f = open(screenshotName+".html",'w')
-								f.write(html_source)
-								f.close()
-								browser2.save_screenshot(screenshotName+".png")
-								browser2.quit()
-								continue
-						except:
-							browser2.quit()
-							print "[-] Didn't work with SSLv3 either - exception..."+curUrl[0]
-
+                                        #Remove phantomJS section
 					if(tryGUIOnFail and headless):
 						display = Display(visible=0, size=(1024, 768))
 						display.start()
@@ -582,8 +551,8 @@ if __name__ == '__main__':
 	#shuffle the url list
 	shuffle(urls)
 
-	#read in the subdomain bruteforce list if specificed
-	subs = []
+        #read in the subdomain bruteforce list if specificed
+        subs = []
 	if(args.dns_brute != None):
 		subs = open(args.dns_brute,'r').readlines()
 
