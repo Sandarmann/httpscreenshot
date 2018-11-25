@@ -1,12 +1,5 @@
 #!/usr/bin/python
 
-'''
-Installation on Ubuntu:
-apt-get install python-requests python-m2crypto phantomjs
-If you run into: 'module' object has no attribute 'PhantomJS'
-then pip install selenium (or pip install --upgrade selenium)
-'''
-
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from selenium.webdriver.chrome.options import Options as ChromeOptions
@@ -305,7 +298,6 @@ def worker(urlQueue, tout, debug, headless, browser_choice, doProfile, vhosts, s
                                 # THIS MIGHT GET OMMITTED
 				if(browser.current_url == old_url):
 					print "[-] Error fetching in browser but successfully fetched with Requests: "+curUrl[0]
-                                        #Remove phantomJS section
 					if(tryGUIOnFail and headless):
 						display = Display(visible=0, size=(1024, 768))
 						display.start()
@@ -474,8 +466,8 @@ if __name__ == '__main__':
 
 	parser.add_argument("-l","--list",help='List of input URLs')
 	parser.add_argument("-i","--input",help='nmap gnmap/xml output file')
-	parser.add_argument("-p","--headless",action='store_true',default=False,help='Run in headless mode (using phantomjs)')
-	parser.add_argument("-b","--browser",type=str,default="firefox",choices=["chrome", "firefox"],help='Browser to run selenium')
+	parser.add_argument("-p","--headless",action='store_true',default=False,help='Run in headless mode (using firefox/chrome)')
+	parser.add_argument("-b","--browser",type=str,default="firefox",choices=["chrome", "firefox"],help='Browser to run selenium (Default firefox)')
 	parser.add_argument("-w","--workers",default=1,type=int,help='number of threads')
 	parser.add_argument("-t","--timeout",type=int,default=10,help='time to wait for pageload before killing the browser')
 	parser.add_argument("-v","--verbose",action='store_true',default=False,help='turn on verbose debugging')
