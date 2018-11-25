@@ -464,7 +464,6 @@ signal.signal(signal.SIGINT, signal_handler)
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 
-	parser.add_argument("-l","--list",help='List of input URLs')
 	parser.add_argument("-i","--input",help='nmap gnmap/xml output file')
 	parser.add_argument("-p","--headless",action='store_true',default=False,help='Run in headless mode (using firefox/chrome)')
 	parser.add_argument("-b","--browser",type=str,default="firefox",choices=["chrome", "firefox"],help='Browser to run selenium (Default firefox)')
@@ -528,13 +527,6 @@ if __name__ == '__main__':
                         urls.append(url)
 		else:
 			print 'Invalid input file - must be Nmap GNMAP or Nmap XML'
-
-	elif (args.list is not None):
-		f = open(args.list,'r')
-		lst = f.readlines()
-		urls = []
-		for url in lst:
-			urls.append([url.strip(),args.vhosts,args.retries])
 	else:
 		print "No input specified"
 		sys.exit(0)
