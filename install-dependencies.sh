@@ -7,7 +7,8 @@
 # Error out if one fails
 set -e
 BASE_DIR=$(dirname ${BASH_SOURCE[0]})
-
+apt-get update
+apt-get install --fix-missing
 apt-get install -y swig swig3.0 libssl-dev python-dev libjpeg-dev xvfb
 
 # Install pip and install pytnon requirements through it
